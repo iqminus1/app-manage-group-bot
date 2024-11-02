@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  database_project1:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: manage_group_bot_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - 15432:5432
+    networks:
+      - postgres-network
+    volumes:
+      - ${PWD}/db-data/project1/:/var/lib/postgresql/data/
+
+  database_project2:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: project_2_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - 15433:5432
+    networks:
+      - postgres-network
+    volumes:
+      - ${PWD}/db-data/project2/:/var/lib/postgresql/data/
+
+  database_project3:
+    image: 'postgres:latest'
+    environment:
+      POSTGRES_DB: project_3_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - 15434:5432
+    networks:
+      - postgres-network
+    volumes:
+      - ${PWD}/db-data/project3/:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - 15435:80
+    env_file:
+      - .env
+    depends_on:
+      - database_project1
+      - database_project2
+      - database_project3
+    networks:
+      - postgres-network
+    volumes:
+      - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
+
+networks:
+  postgres-network:
+    driver: bridge
