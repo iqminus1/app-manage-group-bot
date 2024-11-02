@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.ChatJoinRequest;
 import uz.pdp.appmanagegroupbot.enums.LangFields;
-import uz.pdp.appmanagegroupbot.model.Group;
 import uz.pdp.appmanagegroupbot.model.User;
-import uz.pdp.appmanagegroupbot.repository.GroupRepository;
 import uz.pdp.appmanagegroupbot.repository.UserRepository;
 import uz.pdp.appmanagegroupbot.service.ButtonService;
 import uz.pdp.appmanagegroupbot.service.JoinChatService;
@@ -16,14 +14,12 @@ import uz.pdp.appmanagegroupbot.utils.AppConstants;
 import uz.pdp.appmanagegroupbot.utils.CommonUtils;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class JoinChatServiceImpl implements JoinChatService {
     private final Sender sender;
     private final LangService langService;
-    private final GroupRepository groupRepository;
     private final CommonUtils commonUtils;
     private final UserRepository userRepository;
     private final ButtonService buttonService;
@@ -32,10 +28,8 @@ public class JoinChatServiceImpl implements JoinChatService {
     @Override
     public void process(ChatJoinRequest chatJoinRequest) {
         Long groupId = chatJoinRequest.getChat().getId();
-        Optional<Group> groupOptional = groupRepository.findByGroupId(groupId);
-        if (groupOptional.isEmpty() || groupOptional.get().getGroupId() == null) {
+        if (!groupId.equals(AppConstants.GROUP_ID))
             return;
-        }
 
         Long userId = chatJoinRequest.getUser().getId();
         String name = chatJoinRequest.getChat().getTitle();

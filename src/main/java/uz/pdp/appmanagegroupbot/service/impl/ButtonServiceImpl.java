@@ -102,6 +102,8 @@ public class ButtonServiceImpl implements ButtonService {
     public ReplyKeyboard adminMenu(Long userId) {
         List<String> list = new LinkedList<>();
         int adminLvl = commonUtils.getUser(userId).getAdmin();
+        if (adminLvl >= 4)
+            list.add(langService.getMessage(LangFields.SEND_UPDATE_BUTTON, userId));
         if (adminLvl >= 3)
             list.add(langService.getMessage(LangFields.ADMINS_LIST_TEXT, userId));
 
@@ -114,6 +116,7 @@ public class ButtonServiceImpl implements ButtonService {
         list.add(langService.getMessage(LangFields.BACK_BUTTON, userId));
         return withString(list);
     }
+
     @Override
     public InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId) {
         List<Map<String, String>> list = new ArrayList<>();
@@ -124,5 +127,20 @@ public class ButtonServiceImpl implements ButtonService {
                 AppConstants.REJECT_SCREENSHOT_DATA + screenshotId);
         list.add(map);
         return callbackKeyboard(list);
+    }
+
+    @Override
+    public ReplyKeyboard chooseUsers(Long userId) {
+        String all = langService.getMessage(LangFields.SEND_UPDATE_TO_ALL_BUTTON, userId);
+        String subscribed = langService.getMessage(LangFields.SEND_UPDATE_TO_SUBSCRIBED_BUTTON, userId);
+        String nonSubscribed = langService.getMessage(LangFields.SEND_UPDATE_TO_NON_SUBSCRIBED_BUTTON, userId);
+        String back = langService.getMessage(LangFields.BACK_BUTTON, userId);
+
+        List<String> strings = new LinkedList<>();
+        strings.add(all);
+        strings.add(subscribed);
+        strings.add(nonSubscribed);
+        strings.add(back);
+        return withString(strings);
     }
 }

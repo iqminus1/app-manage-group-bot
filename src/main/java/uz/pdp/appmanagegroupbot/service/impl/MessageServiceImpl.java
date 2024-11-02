@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import uz.pdp.appmanagegroupbot.enums.LangFields;
 import uz.pdp.appmanagegroupbot.enums.State;
 import uz.pdp.appmanagegroupbot.enums.Status;
@@ -14,6 +15,7 @@ import uz.pdp.appmanagegroupbot.model.Photo;
 import uz.pdp.appmanagegroupbot.model.User;
 import uz.pdp.appmanagegroupbot.repository.PhotoRepository;
 import uz.pdp.appmanagegroupbot.repository.UserRepository;
+import uz.pdp.appmanagegroupbot.service.AdminSendingUpdateService;
 import uz.pdp.appmanagegroupbot.service.ButtonService;
 import uz.pdp.appmanagegroupbot.service.LangService;
 import uz.pdp.appmanagegroupbot.service.MessageService;
@@ -40,14 +42,23 @@ public class MessageServiceImpl implements MessageService {
     private final UserRepository userRepository;
     private final DateTimeFormatter formatter;
     private final PhotoRepository photoRepository;
+    private final AdminSendingUpdateService adminSendingUpdateService;
 
     @Override
     public void process(Message message) {
         if (message.getChat().getType().equals("private")) {
+            Long userId = message.getFrom().getId();
+            User user = commonUtils.getUser(userId);
+            if (user.getAdmin() >= 4) {
+                State state = user.getState();
+                if (AppConstants.STATE_SEND_UPDATE_LIST.contains(state)) {
+                    if (adminSendingUpdateService.process(message, state))
+                        sender.sendMessage(userId, langService.getMessage(LangFields.UPDATE_SENT_TEXT, userId));
+                    return;
+                }
+            }
             if (message.hasText()) {
                 String text = message.getText();
-                Long userId = message.getFrom().getId();
-                User user = commonUtils.getUser(userId);
                 if (text.equals("/start")) {
                     start(userId);
                     return;
@@ -82,6 +93,23 @@ public class MessageServiceImpl implements MessageService {
                             screenshotsList(userId);
                         } else if (text.equals(langService.getMessage(LangFields.SUBSCRIBED_USERS_LIST_TEXT, userId))) {
                             usersList(userId);
+                        } else if (text.equals(langService.getMessage(LangFields.SEND_UPDATE_BUTTON, userId))) {
+                            sendUpdateTypes(userId);
+                        }
+                    }
+                    case CHOOSE_USERS -> {
+                        if (text.equals(langService.getMessage(LangFields.BACK_BUTTON, userId))) {
+                            commonUtils.setState(userId, State.ADMIN_MENU);
+                            adminMenu(userId);
+                        } else if (text.equals(langService.getMessage(LangFields.SEND_UPDATE_TO_ALL_BUTTON, userId))) {
+                            commonUtils.setState(userId, State.SENDING_UPDATE_TO_ALL);
+                            sender.sendMessage(userId, langService.getMessage(LangFields.SEND_UPDATE_TEXT, userId), buttonService.withString(List.of(langService.getMessage(LangFields.BACK_BUTTON, userId))));
+                        } else if (text.equals(langService.getMessage(LangFields.SEND_UPDATE_TO_SUBSCRIBED_BUTTON, userId))) {
+                            commonUtils.setState(userId, State.SENDING_UPDATE_TO_SUBSCRIBED);
+                            sender.sendMessage(userId, langService.getMessage(LangFields.SEND_UPDATE_TEXT, userId), buttonService.withString(List.of(langService.getMessage(LangFields.BACK_BUTTON, userId))));
+                        } else if (text.equals(langService.getMessage(LangFields.SEND_UPDATE_TO_NON_SUBSCRIBED_BUTTON, userId))) {
+                            commonUtils.setState(userId, State.SENDING_UPDATE_TO_NON_SUBSCRIBED);
+                            sender.sendMessage(userId, langService.getMessage(LangFields.SEND_UPDATE_TEXT, userId), buttonService.withString(List.of(langService.getMessage(LangFields.BACK_BUTTON, userId))));
                         }
                     }
                 }
@@ -98,6 +126,17 @@ public class MessageServiceImpl implements MessageService {
                 }
             }
         }
+    }
+
+    private void sendUpdateTypes(Long userId) {
+        User user = commonUtils.getUser(userId);
+        if (user.getAdmin() < 4) {
+            return;
+        }
+        user.setState(State.CHOOSE_USERS);
+        String message = langService.getMessage(LangFields.CHOOSE_UPDATE_TEXT, userId);
+        ReplyKeyboard replyKeyboard = buttonService.chooseUsers(userId);
+        sender.sendMessage(userId, message, replyKeyboard);
     }
 
     private void usersList(Long userId) {
@@ -229,7 +268,6 @@ public class MessageServiceImpl implements MessageService {
             user.setState(State.START);
             userRepository.save(user);
             sendingPhoto(userId);
-            //TODO::Tarif ro'yxati..
             return;
         }
         sender.sendMessage(userId, langService.getMessage(LangFields.SEND_YOUR_PHONE_NUMBER_TEXT, userId), buttonService.requestContact(userId));
@@ -237,7 +275,7 @@ public class MessageServiceImpl implements MessageService {
 
     private void start(Long userId) {
         commonUtils.setState(userId, State.START);
-        sender.sendPhoto(userId, langService.getMessage(LangFields.START_TEXT, userId).formatted(AppConstants.AUTHOR, sender.getGroupName(), AppConstants.COURSE_INFO), AppConstants.REQUEST_AND_FIRST_PHOTO_PATH, buttonService.start(userId));
+        sender.sendPhoto(userId, langService.getMessage(LangFields.START_TEXT, userId).formatted(AppConstants.AUTHOR, sender.getGroupName()), AppConstants.REQUEST_AND_FIRST_PHOTO_PATH, buttonService.start(userId));
     }
 
 }

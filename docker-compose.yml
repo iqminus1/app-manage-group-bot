@@ -15,7 +15,7 @@ services:
 
   app:
     build: .
-    container_name: manage_group_bot_1
+    container_name: app_manage_group_bot_1
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/manage_group_bot
       SPRING_DATASOURCE_USERNAME: postgres

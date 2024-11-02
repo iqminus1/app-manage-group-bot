@@ -23,4 +23,6 @@ public interface ButtonService {
     ReplyKeyboard adminMenu(Long userId);
 
     InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId);
+
+    ReplyKeyboard chooseUsers(Long userId);
 }

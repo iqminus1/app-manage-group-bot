@@ -9,17 +9,13 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.*;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import uz.pdp.appmanagegroupbot.model.Group;
-import uz.pdp.appmanagegroupbot.repository.GroupRepository;
-import uz.pdp.appmanagegroupbot.service.LangService;
 import uz.pdp.appmanagegroupbot.utils.AppConstants;
 
 import java.io.IOException;
@@ -29,20 +25,13 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.UUID;
 
 @Component
 public class Sender extends DefaultAbsSender {
 
-    private final GroupRepository groupRepository;
-    private final LangService langService;
-    private String link;
-
-    public Sender(GroupRepository groupRepository, LangService langService) {
+    public Sender() {
         super(new DefaultBotOptions(), AppConstants.BOT_TOKEN);
-        this.groupRepository = groupRepository;
-        this.langService = langService;
     }
 
     public void sendMessage(Long userId, String text) {
@@ -82,7 +71,6 @@ public class Sender extends DefaultAbsSender {
                         message.setReplyMarkup(replyKeyboard);
                         execute(message);
                     } else execute(message);
-
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -103,35 +91,10 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
-    public void autoDeleteKeyboard(Long userId) {
-        SendMessage sendMessage = new SendMessage(userId.toString(), ".");
-        sendMessage.setReplyMarkup(new ReplyKeyboardRemove(true));
-
+    public void kickUser(Long userId) {
         try {
-            Message execute = execute(sendMessage);
-            deleteMessage(userId, execute.getMessageId());
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void editMessage(Long userId, Integer messageId, String text, InlineKeyboardMarkup replyKeyboard) {
-        EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setMessageId(messageId);
-        editMessageText.setChatId(userId);
-        editMessageText.setText(text);
-        editMessageText.setReplyMarkup(replyKeyboard);
-        try {
-            execute(editMessageText);
-        } catch (TelegramApiException e) {
-            System.err.println("Ошибка редактирования сообщения: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void leaveChat(Long groupId) {
-        try {
-            executeAsync(new LeaveChat(groupId.toString()));
+            execute(new BanChatMember(AppConstants.GROUP_ID.toString(), userId));
+            execute(new UnbanChatMember(AppConstants.GROUP_ID.toString(), userId));
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
@@ -150,25 +113,14 @@ public class Sender extends DefaultAbsSender {
 
     public String getLink(Long groupId) {
         try {
-            EditChatInviteLink editChatInviteLink = new EditChatInviteLink();
-            editChatInviteLink.setChatId(groupId);
-            editChatInviteLink.setCreatesJoinRequest(true);
-            editChatInviteLink.setName("Link by bot");
-            if (link != null)
-                editChatInviteLink.setInviteLink(link);
-            ChatInviteLink execute = execute(editChatInviteLink);
-            return execute.getInviteLink();
-        } catch (TelegramApiException e) {
-            try {
-                CreateChatInviteLink createChatInviteLink = new CreateChatInviteLink();
-                createChatInviteLink.setName("Link by bot");
-                createChatInviteLink.setCreatesJoinRequest(true);
-                createChatInviteLink.setChatId(groupId);
+            CreateChatInviteLink createChatInviteLink = new CreateChatInviteLink();
+            createChatInviteLink.setName("Link by bot");
+            createChatInviteLink.setCreatesJoinRequest(true);
+            createChatInviteLink.setChatId(groupId);
 
-                return execute(createChatInviteLink).getInviteLink();
-            } catch (TelegramApiException ex) {
-                throw new RuntimeException(ex);
-            }
+            return execute(createChatInviteLink).getInviteLink();
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -191,14 +143,6 @@ public class Sender extends DefaultAbsSender {
         sendPhoto.setParseMode("Markdown");
         try {
             execute(sendPhoto);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void deleteMessage(Long userId, Integer messageId) {
-        try {
-            executeAsync(new DeleteMessage(userId.toString(), messageId));
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
@@ -231,21 +175,9 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
-    public void sendLink(Long userId, ReplyKeyboard replyKeyboard) {
-        //TODO: qilinishi kerak
-    }
-
     public String getGroupName() {
-        List<Group> groups = groupRepository.findAll();
-        if (groups.size() != 1) {
-            return "Guruhga qo'shilamagan";
-        }
-        Group group = groups.get(0);
-        if (group.getGroupId() == null) {
-            return "Guruhga qo'shilamagan";
-        }
         try {
-            Chat execute = execute(new GetChat(group.getGroupId().toString()));
+            Chat execute = execute(new GetChat(AppConstants.GROUP_ID.toString()));
             return execute.getTitle();
         } catch (TelegramApiException e) {
             return "Guruhda muammo";
@@ -278,4 +210,5 @@ public class Sender extends DefaultAbsSender {
             throw new RuntimeException(e);
         }
     }
+
 }

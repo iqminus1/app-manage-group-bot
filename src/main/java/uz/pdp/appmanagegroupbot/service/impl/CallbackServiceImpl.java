@@ -6,10 +6,8 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import uz.pdp.appmanagegroupbot.enums.LangFields;
 import uz.pdp.appmanagegroupbot.enums.State;
 import uz.pdp.appmanagegroupbot.enums.Status;
-import uz.pdp.appmanagegroupbot.model.Group;
 import uz.pdp.appmanagegroupbot.model.Photo;
 import uz.pdp.appmanagegroupbot.model.User;
-import uz.pdp.appmanagegroupbot.repository.GroupRepository;
 import uz.pdp.appmanagegroupbot.repository.PhotoRepository;
 import uz.pdp.appmanagegroupbot.repository.UserRepository;
 import uz.pdp.appmanagegroupbot.service.CallbackService;
@@ -20,7 +18,6 @@ import uz.pdp.appmanagegroupbot.utils.CommonUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import static uz.pdp.appmanagegroupbot.utils.AppConstants.getChatToString;
 import static uz.pdp.appmanagegroupbot.utils.AppConstants.setSubscriptionTime;
@@ -33,7 +30,6 @@ public class CallbackServiceImpl implements CallbackService {
     private final UserRepository userRepository;
     private final LangService langService;
     private final PhotoRepository photoRepository;
-    private final GroupRepository groupRepository;
     private final DateTimeFormatter dateTimeFormatter;
 
     @Override
@@ -72,12 +68,10 @@ public class CallbackServiceImpl implements CallbackService {
 
 
         User user = commonUtils.getUser(screenshot.getSendUserId());
-        userRepository.save(setSubscriptionTime(user, 1));
+        setSubscriptionTime(user, 1);
+        userRepository.save(user);
 
-        List<Group> groups = groupRepository.findAll();
-        if (groups.size() == 1) {
-            sender.sendMessage(user.getId(), langService.getMessage(LangFields.SCREENSHOT_IS_VALID_TEXT, screenshot.getSendUserId()) + " -> " + sender.getLink(groups.get(0).getGroupId()));
-        }
+        sender.sendMessage(user.getId(), langService.getMessage(LangFields.SCREENSHOT_IS_VALID_TEXT, screenshot.getSendUserId()) + " -> " + sender.getLink(AppConstants.GROUP_ID));
     }
 
 

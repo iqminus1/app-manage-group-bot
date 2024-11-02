@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>uz.pdp</groupId>
-    <artifactId>app-full-contact-bot</artifactId>
+    <artifactId>app-manage-group-bot</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>app-full-contact-bot</name>
-    <description>app-full-contact-bot</description>
+    <name>app-manage-group-bot</name>
+    <description>app-manage-group-bot</description>
     <url/>
     <licenses>
         <license/>
