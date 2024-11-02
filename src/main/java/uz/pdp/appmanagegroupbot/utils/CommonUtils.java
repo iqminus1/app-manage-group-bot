@@ -47,12 +47,6 @@ public class CommonUtils {
         return getUser(userId).getLang().toString();
     }
 
-    public void setLang(Long userId, Lang lang) {
-        User user = getUser(userId);
-        user.setLang(lang);
-        users.put(userId, user);
-    }
-
     @Scheduled(cron = "0 0 4 * * ?")
     public void saveUsers() {
         List<User> list = users.values().stream().toList();
