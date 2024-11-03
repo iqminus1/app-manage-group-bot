@@ -1,59 +1,45 @@
 version: '3.8'
+
 services:
-  database_project1:
-    image: 'postgres:latest'
+  postgres:
+    image: postgres:15
+    container_name: postgres_container
     environment:
-      POSTGRES_DB: manage_group_bot_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
-    ports:
-      - 15432:5432
-    networks:
-      - postgres-network
     volumes:
-      - ${PWD}/db-data/project1/:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - app_network
 
-  database_project2:
-    image: 'postgres:latest'
+  project1:
+    image: project1_image
     environment:
-      POSTGRES_DB: project_2_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-    ports:
-      - 15433:5432
-    networks:
-      - postgres-network
-    volumes:
-      - ${PWD}/db-data/project2/:/var/lib/postgresql/data/
-
-  database_project3:
-    image: 'postgres:latest'
-    environment:
-      POSTGRES_DB: project_3_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-    ports:
-      - 15434:5432
-    networks:
-      - postgres-network
-    volumes:
-      - ${PWD}/db-data/project3/:/var/lib/postgresql/data/
-
-  pgadmin:
-    image: dpage/pgadmin4
-    ports:
-      - 15435:80
-    env_file:
-      - .env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_manage_group_bot_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
     depends_on:
-      - database_project1
-      - database_project2
-      - database_project3
+      - postgres
     networks:
-      - postgres-network
-    volumes:
-      - ${PWD}/pgadmin-data/:/var/lib/pgadmin/
+      - app_network
+
+  project2:
+    image: project2_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_manage_channel_bot_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+    driver: local
 
 networks:
-  postgres-network:
+  app_network:
     driver: bridge
