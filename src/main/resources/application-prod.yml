@@ -1,0 +1,11 @@
+server:
+  port: 343
+spring:
+  datasource:
+    username: project_1
+    password: 123
+    url: jdbc:postgresql://localhost:5432/project_1_db
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update

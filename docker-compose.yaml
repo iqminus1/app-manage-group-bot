@@ -17,8 +17,8 @@ services:
   project1:
     image: project1_image
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_manage_group_bot_db
-      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_1_db
+      SPRING_DATASOURCE_USERNAME: project_1
       SPRING_DATASOURCE_PASSWORD: 123
     depends_on:
       - postgres
@@ -28,8 +28,96 @@ services:
   project2:
     image: project2_image
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/app_manage_channel_bot_db
-      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_2_db
+      SPRING_DATASOURCE_USERNAME: project_2
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project3:
+    image: project3_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_3_db
+      SPRING_DATASOURCE_USERNAME: project_3
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project4:
+    image: project4_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_4_db
+      SPRING_DATASOURCE_USERNAME: project_4
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project5:
+    image: project5_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_5_db
+      SPRING_DATASOURCE_USERNAME: project_5
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project6:
+    image: project6_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_6_db
+      SPRING_DATASOURCE_USERNAME: project_6
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project7:
+    image: project7_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_7_db
+      SPRING_DATASOURCE_USERNAME: project_7
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project8:
+    image: project8_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_8_db
+      SPRING_DATASOURCE_USERNAME: project_8
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project9:
+    image: project9_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_9_db
+      SPRING_DATASOURCE_USERNAME: project_9
+      SPRING_DATASOURCE_PASSWORD: 123
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  project10:
+    image: project10_image
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/project_10_db
+      SPRING_DATASOURCE_USERNAME: project_10
       SPRING_DATASOURCE_PASSWORD: 123
     depends_on:
       - postgres
