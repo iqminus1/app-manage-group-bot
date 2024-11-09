@@ -3,10 +3,7 @@ package uz.pdp.appmanagegroupbot.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import uz.pdp.appmanagegroupbot.service.CallbackService;
-import uz.pdp.appmanagegroupbot.service.JoinChatService;
-import uz.pdp.appmanagegroupbot.service.MessageService;
-import uz.pdp.appmanagegroupbot.service.ProcessService;
+import uz.pdp.appmanagegroupbot.service.*;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +11,7 @@ public class ProcessServiceImpl implements ProcessService {
     private final MessageService messageService;
     private final JoinChatService joinChatService;
     private final CallbackService callbackService;
+    private final MyChatMemberService myChatMemberService;
 
     @Override
     public void process(Update update) {
@@ -23,6 +21,8 @@ public class ProcessServiceImpl implements ProcessService {
             joinChatService.process(update.getChatJoinRequest());
         } else if (update.hasCallbackQuery()) {
             callbackService.process(update.getCallbackQuery());
+        } else if (update.hasMyChatMember()){
+            myChatMemberService.process(update.getMyChatMember());
         }
     }
 }

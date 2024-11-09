@@ -22,7 +22,15 @@ public interface ButtonService {
 
     ReplyKeyboard adminMenu(Long userId);
 
-    InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId);
+    InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId, Long senderId);
 
-    ReplyKeyboard chooseUsers(Long userId);
+    InlineKeyboardMarkup getChatCallback(Long userId);
+
+    ReplyKeyboard aboutCourses(Long userId);
+
+    ReplyKeyboard getFilials(Long userId);
+
+    ReplyKeyboard getChannel(Long userId);
+
+    ReplyKeyboard back(Long userId);
 }

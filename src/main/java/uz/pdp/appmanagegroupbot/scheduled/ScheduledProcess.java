@@ -32,10 +32,10 @@ public class ScheduledProcess {
             long between = ChronoUnit.DAYS.between(today, user.getSubscriptionEndTime());
             Long userId = user.getId();
             if (between > 0)
-                sender.sendMessage(userId, langService.getMessage(LangFields.SCHEDULED_EXPIRE_ON_DAYS_TEXT, userId).formatted(between, langService.getMessage(LangFields.MONTHLY_TARIFF_TEXT, userId)), true);
+                sender.sendMessage(userId, langService.getMessage(LangFields.SCHEDULED_EXPIRE_ON_DAYS_TEXT, userId).formatted(between, langService.getMessage(LangFields.SUBSCRIBE_BUTTON, userId)), true);
             else {
                 if (user.getSubscriptionEndTime().isAfter(LocalDateTime.now())) {
-                    sender.sendMessage(userId, langService.getMessage(LangFields.SCHEDULED_EXPIRE_TODAY_TEXT, userId).formatted(langService.getMessage(LangFields.MONTHLY_TARIFF_TEXT, userId)), true);
+                    sender.sendMessage(userId, langService.getMessage(LangFields.SCHEDULED_EXPIRE_TODAY_TEXT, userId).formatted(langService.getMessage(LangFields.SUBSCRIBE_BUTTON, userId)), true);
                 } else {
                     sender.kickUser(userId);
                     user.setSubscribed(false);

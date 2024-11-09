@@ -5,7 +5,10 @@ import org.springframework.util.StreamUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.*;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.ApproveChatJoinRequest;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.BanChatMember;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.UnbanChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -111,19 +114,6 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
-    public String getLink(Long groupId) {
-        try {
-            CreateChatInviteLink createChatInviteLink = new CreateChatInviteLink();
-            createChatInviteLink.setName("Link by bot");
-            createChatInviteLink.setCreatesJoinRequest(true);
-            createChatInviteLink.setChatId(groupId);
-
-            return execute(createChatInviteLink).getInviteLink();
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public Chat getChat(Long userId) {
         try {
             return execute(new GetChat(userId.toString()));
@@ -184,7 +174,7 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
-    public void sendDocument(Long userId, String caption, String path, InlineKeyboardMarkup keyboard) {
+    public void sendDocument(Long userId, String caption, String path, InlineKeyboardMarkup keyboard, String parseMode) {
         SendDocument document = new SendDocument();
         document.setCaption(caption);
         InputFile photo = new InputFile();
@@ -192,6 +182,8 @@ public class Sender extends DefaultAbsSender {
         document.setDocument(photo);
         document.setChatId(userId);
         document.setReplyMarkup(keyboard);
+        if (parseMode != null)
+            document.setParseMode(parseMode);
         try {
             execute(document);
         } catch (TelegramApiException e) {
@@ -199,11 +191,14 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
-    public void changeCaption(Long userId, Integer messageId, String text) {
+    public void changeCaption(Long userId, Integer messageId, String text, InlineKeyboardMarkup inlineKeyboardMarkup, String parseMode) {
         EditMessageCaption editMessageCaption = new EditMessageCaption();
         editMessageCaption.setChatId(userId);
         editMessageCaption.setCaption(text);
         editMessageCaption.setMessageId(messageId);
+        editMessageCaption.setReplyMarkup(inlineKeyboardMarkup);
+        if (parseMode != null)
+            editMessageCaption.setParseMode(parseMode);
         try {
             execute(editMessageCaption);
         } catch (TelegramApiException e) {
@@ -211,4 +206,11 @@ public class Sender extends DefaultAbsSender {
         }
     }
 
+    public void sendMessage(SendMessage sendMessage) {
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -59,4 +59,8 @@ public class CommonUtils {
         userRepository.saveAll(users.values());
         users.clear();
     }
+
+    public void removeUser(Long userId) {
+        users.remove(userId);
+    }
 }

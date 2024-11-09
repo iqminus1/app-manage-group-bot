@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.client.RestTemplate;
 
+import java.text.DecimalFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
@@ -46,4 +47,11 @@ public class AppManageGroupBotApplication {
         return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
                 .withZone(ZoneId.of("Asia/Tashkent"));
     }
+
+
+    @Bean
+    public DecimalFormat decimalFormat() {
+        return new DecimalFormat("### ### ### ###");
+    }
+
 }

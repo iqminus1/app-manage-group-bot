@@ -45,7 +45,6 @@ public class ButtonServiceImpl implements ButtonService {
     @Override
     public InlineKeyboardMarkup callbackKeyboard(List<Map<String, String>> textData) {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
         for (Map<String, String> map : textData) {
@@ -68,13 +67,17 @@ public class ButtonServiceImpl implements ButtonService {
 
     @Override
     public ReplyKeyboard start(Long userId) {
-        String monthly = langService.getMessage(LangFields.MONTHLY_TARIFF_TEXT, userId);
-        String aboutBot = langService.getMessage(LangFields.ABOUT_BOT_BUTTON, userId);
+        String aboutChannel = langService.getMessage(LangFields.ABOUT_CHANNEL_BUTTON, userId);
+        String aboutFilial = langService.getMessage(LangFields.ABOUT_FILIAL_BUTTON, userId);
+        String aboutTeachers = langService.getMessage(LangFields.ABOUT_TEACHERS_BUTTON, userId);
+        String aboutCourses = langService.getMessage(LangFields.ABOUT_COURSES_BUTTON, userId);
         List<String> strings = new LinkedList<>();
         if (commonUtils.getUser(userId).getAdmin() > 0)
             strings.add(langService.getMessage(LangFields.ADMIN_MENU_TEXT, userId));
-        strings.add(monthly);
-        strings.add(aboutBot);
+        strings.add(aboutFilial);
+        strings.add(aboutChannel);
+        strings.add(aboutTeachers);
+        strings.add(aboutCourses);
         return withString(strings);
     }
 
@@ -102,10 +105,8 @@ public class ButtonServiceImpl implements ButtonService {
     public ReplyKeyboard adminMenu(Long userId) {
         List<String> list = new LinkedList<>();
         int adminLvl = commonUtils.getUser(userId).getAdmin();
-        if (adminLvl >= 4)
-            list.add(langService.getMessage(LangFields.SEND_UPDATE_BUTTON, userId));
         if (adminLvl >= 3)
-            list.add(langService.getMessage(LangFields.ADMINS_LIST_TEXT, userId));
+            list.add(langService.getMessage(LangFields.SEND_UPDATE_BUTTON, userId));
 
         if (adminLvl >= 2)
             list.add(langService.getMessage(LangFields.SCREENSHOTS_LIST_TEXT, userId));
@@ -113,12 +114,13 @@ public class ButtonServiceImpl implements ButtonService {
         if (adminLvl >= 1)
             list.add(langService.getMessage(LangFields.SUBSCRIBED_USERS_LIST_TEXT, userId));
 
+        list.add(langService.getMessage(LangFields.REPORT_BUTTON, userId));
         list.add(langService.getMessage(LangFields.BACK_BUTTON, userId));
         return withString(list);
     }
 
     @Override
-    public InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId) {
+    public InlineKeyboardMarkup screenshotKeyboard(Long userId, Long screenshotId, Long senderId) {
         List<Map<String, String>> list = new ArrayList<>();
         Map<String, String> map = new LinkedHashMap<>();
         map.put(langService.getMessage(LangFields.ACCEPT_SCREENSHOT_TEXT, userId),
@@ -126,21 +128,63 @@ public class ButtonServiceImpl implements ButtonService {
         map.put(langService.getMessage(LangFields.REJECT_SCREENSHOT_TEXT, userId),
                 AppConstants.REJECT_SCREENSHOT_DATA + screenshotId);
         list.add(map);
-        return callbackKeyboard(list);
+        InlineKeyboardMarkup markup = callbackKeyboard(list);
+        List<List<InlineKeyboardButton>> keyboard = markup.getKeyboard();
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+        inlineKeyboardButton.setText(langService.getMessage(LangFields.CHAT_BUTTON, userId));
+        inlineKeyboardButton.setUrl("tg://user?id=" + senderId);
+        keyboard.add(List.of(inlineKeyboardButton));
+        return markup;
     }
 
     @Override
-    public ReplyKeyboard chooseUsers(Long userId) {
-        String all = langService.getMessage(LangFields.SEND_UPDATE_TO_ALL_BUTTON, userId);
-        String subscribed = langService.getMessage(LangFields.SEND_UPDATE_TO_SUBSCRIBED_BUTTON, userId);
-        String nonSubscribed = langService.getMessage(LangFields.SEND_UPDATE_TO_NON_SUBSCRIBED_BUTTON, userId);
-        String back = langService.getMessage(LangFields.BACK_BUTTON, userId);
+    public InlineKeyboardMarkup getChatCallback(Long userId) {
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
-        List<String> strings = new LinkedList<>();
-        strings.add(all);
-        strings.add(subscribed);
-        strings.add(nonSubscribed);
-        strings.add(back);
-        return withString(strings);
+
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText(langService.getMessage(LangFields.USER_PROFILE_TEXT, userId));
+        button.setUrl("tg://user?id=" + userId);
+        rows.add(List.of(button));
+
+        markup.setKeyboard(rows);
+        return markup;
+
+    }
+
+    @Override
+    public ReplyKeyboard aboutCourses(Long userId) {
+        List<String> list = new LinkedList<>();
+        list.add("General English");
+        list.add("IELTS");
+        list.add("CEFR");
+        list.add(langService.getMessage(LangFields.BACK_BUTTON, userId));
+        return withString(list);
+    }
+
+    @Override
+    public ReplyKeyboard getFilials(Long userId) {
+        List<String> list = new LinkedList<>();
+        String message = langService.getMessage(LangFields.BACK_BUTTON, userId);
+        list.add("Sergeli filial lokatsiyasini olish");
+        list.add("Chilonzor filial lokatsiyasini olish");
+        list.add(message);
+        return withString(list);
+    }
+
+    @Override
+    public ReplyKeyboard getChannel(Long userId) {
+        String message = langService.getMessage(LangFields.SUBSCRIBE_BUTTON, userId);
+        String message1 = langService.getMessage(LangFields.BACK_BUTTON, userId);
+        List<String> list = new LinkedList<>();
+        list.add(message);
+        list.add(message1);
+        return withString(list);
+    }
+
+    @Override
+    public ReplyKeyboard back(Long userId) {
+        return withString(List.of(langService.getMessage(LangFields.BACK_BUTTON, userId)));
     }
 }

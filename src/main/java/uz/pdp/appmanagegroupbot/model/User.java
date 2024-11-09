@@ -34,4 +34,5 @@ public class User {
     @Enumerated(EnumType.STRING)
     private State state;
 
+    private boolean blocked;
 }

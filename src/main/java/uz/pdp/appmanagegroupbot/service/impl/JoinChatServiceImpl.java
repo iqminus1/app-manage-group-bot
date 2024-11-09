@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.ChatJoinRequest;
 import uz.pdp.appmanagegroupbot.enums.LangFields;
+import uz.pdp.appmanagegroupbot.enums.State;
 import uz.pdp.appmanagegroupbot.model.User;
 import uz.pdp.appmanagegroupbot.repository.UserRepository;
 import uz.pdp.appmanagegroupbot.service.ButtonService;
@@ -42,7 +43,11 @@ public class JoinChatServiceImpl implements JoinChatService {
                 return;
             }
         }
+        user.setState(State.START);
         sender.sendPhoto(userId, langService.getMessage(LangFields.NOT_PAID_TEXT, userId).formatted(name), AppConstants.REQUEST_AND_FIRST_PHOTO_PATH, buttonService.start(userId));
+        if (user.isBlocked()) {
+            user.setBlocked(false);
+            userRepository.save(user);
+        }
     }
-
 }

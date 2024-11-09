@@ -2,7 +2,9 @@ package uz.pdp.appmanagegroupbot.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import uz.pdp.appmanagegroupbot.enums.LangFields;
 import uz.pdp.appmanagegroupbot.enums.State;
 import uz.pdp.appmanagegroupbot.enums.Status;
@@ -10,6 +12,7 @@ import uz.pdp.appmanagegroupbot.model.Photo;
 import uz.pdp.appmanagegroupbot.model.User;
 import uz.pdp.appmanagegroupbot.repository.PhotoRepository;
 import uz.pdp.appmanagegroupbot.repository.UserRepository;
+import uz.pdp.appmanagegroupbot.service.ButtonService;
 import uz.pdp.appmanagegroupbot.service.CallbackService;
 import uz.pdp.appmanagegroupbot.service.LangService;
 import uz.pdp.appmanagegroupbot.service.telegram.Sender;
@@ -19,7 +22,6 @@ import uz.pdp.appmanagegroupbot.utils.CommonUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static uz.pdp.appmanagegroupbot.utils.AppConstants.getChatToString;
 import static uz.pdp.appmanagegroupbot.utils.AppConstants.setSubscriptionTime;
 
 @Service
@@ -30,6 +32,7 @@ public class CallbackServiceImpl implements CallbackService {
     private final UserRepository userRepository;
     private final LangService langService;
     private final PhotoRepository photoRepository;
+    private final ButtonService buttonService;
     private final DateTimeFormatter dateTimeFormatter;
 
     @Override
@@ -48,12 +51,15 @@ public class CallbackServiceImpl implements CallbackService {
         Long userId = callbackQuery.getFrom().getId();
         long photoId = Long.parseLong(callbackQuery.getData().split(":")[1]);
         Photo screenshot = updatePhoto(photoId, Status.REJECT);
-        String message = langService.getMessage(LangFields.REJECTED_SCREENSHOT_TEXT, userId);
-        String format = dateTimeFormatter.format(screenshot.getChangedStatus());
-        message = message + "\n" + getChatToString(sender.getChat(userId)) + "\n" + langService.getMessage(LangFields.REJECTED_AT, userId) + " " + format;
-        sender.changeCaption(userId, messageId, message);
 
-        sender.sendMessage(screenshot.getSendUserId(), langService.getMessage(LangFields.SCREENSHOT_IS_INVALID_TEXT, screenshot.getSendUserId()));
+        Long sendUserId = screenshot.getSendUserId();
+        InlineKeyboardMarkup chatCallback = buttonService.getChatCallback(sendUserId);
+        String format = dateTimeFormatter.format(screenshot.getChangedStatus());
+        String message = langService.getMessage(LangFields.REJECTED_SCREENSHOT_TEXT, userId).formatted(commonUtils.getUser(userId).getContactNumber(), format);
+
+        sender.changeCaption(userId, messageId, message, chatCallback, ParseMode.HTML);
+
+        sender.sendMessage(sendUserId, langService.getMessage(LangFields.SCREENSHOT_IS_INVALID_TEXT, sendUserId), true);
     }
 
     private void acceptScreenshot(CallbackQuery callbackQuery) {
@@ -61,17 +67,21 @@ public class CallbackServiceImpl implements CallbackService {
         Long userId = callbackQuery.getFrom().getId();
         long photoId = Long.parseLong(callbackQuery.getData().split(":")[1]);
         Photo screenshot = updatePhoto(photoId, Status.ACCEPT);
-        String message = langService.getMessage(LangFields.ACCEPTED_SCREENSHOT_TEXT, userId);
+
+        Long sendUserId = screenshot.getSendUserId();
+        User user = commonUtils.getUser(sendUserId);
+
         String format = dateTimeFormatter.format(screenshot.getChangedStatus());
-        message = message + "\n" + getChatToString(sender.getChat(userId)) + "\n" + langService.getMessage(LangFields.ACCEPTED_AT, userId) + " " + format;
-        sender.changeCaption(userId, messageId, message);
+        String message = langService.getMessage(LangFields.ACCEPTED_SCREENSHOT_TEXT, userId).formatted(user.getContactNumber(), format);
+        InlineKeyboardMarkup chatCallback = buttonService.getChatCallback(sendUserId);
+        sender.changeCaption(userId, messageId, message, chatCallback, ParseMode.HTML);
 
 
-        User user = commonUtils.getUser(screenshot.getSendUserId());
         setSubscriptionTime(user, 1);
         userRepository.save(user);
 
-        sender.sendMessage(user.getId(), langService.getMessage(LangFields.SCREENSHOT_IS_VALID_TEXT, screenshot.getSendUserId()) + " -> " + sender.getLink(AppConstants.GROUP_ID));
+
+        sender.sendMessage(sendUserId, langService.getMessage(LangFields.SCREENSHOT_IS_VALID_TEXT, sendUserId).formatted(AppConstants.LINK), true);
     }
 
 
